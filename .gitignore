@@ -1,0 +1,31 @@
+# Virtual env
+venv/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Secrets
+.env
+API key.docx
+
+# Temporary uploads and outputs
+temp_uploads/
+outputs/
+demucs_outputs/
+chroma_db/
+
+# Large model files
+models/rvc_models/
+*.pth
+*.index
+*.wav
+*.mp3
+*.flac
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,45 @@
+Using pip 26.0.1 from C:\Users\HP\Documents\ai-cover-song-backend\venv\lib\site-packages\pip (python 3.10)
+Collecting madmom
+  Downloading madmom-0.16.1.tar.gz (20.0 MB)
+     ---------------------------------------- 20.0/20.0 MB 11.8 MB/s  0:00:01
+  Installing build dependencies: started
+  Running command installing build dependencies for madmom
+  Using pip 26.0.1 from C:\Users\HP\Documents\ai-cover-song-backend\venv\Lib\site-packages\pip (python 3.10)
+  Collecting setuptools>=40.8.0
+    Obtaining dependency information for setuptools>=40.8.0 from https://files.pythonhosted.org/packages/94/b8/f1f62a5e3c0ad2ff1d189590bfa4c46b4f3b6e49cef6f26c6ee4e575394d/setuptools-80.10.2-py3-none-any.whl.metadata
+    Using cached setuptools-80.10.2-py3-none-any.whl.metadata (6.6 kB)
+  Using cached setuptools-80.10.2-py3-none-any.whl (1.1 MB)
+  Installing collected packages: setuptools
+  Successfully installed setuptools-80.10.2
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Running command Getting requirements to build wheel
+  Traceback (most recent call last):
+    File "C:\Users\HP\Documents\ai-cover-song-backend\venv\lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 389, in <module>
+      main()
+    File "C:\Users\HP\Documents\ai-cover-song-backend\venv\lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 373, in main
+      json_out["return_val"] = hook(**hook_input["kwargs"])
+    File "C:\Users\HP\Documents\ai-cover-song-backend\venv\lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 143, in get_requires_for_build_wheel
+      return hook(config_settings)
+    File "C:\Users\HP\AppData\Local\Temp\pip-build-env-giaolk1d\overlay\Lib\site-packages\setuptools\build_meta.py", line 333, in get_requires_for_build_wheel
+      return self._get_build_requires(config_settings, requirements=[])
+    File "C:\Users\HP\AppData\Local\Temp\pip-build-env-giaolk1d\overlay\Lib\site-packages\setuptools\build_meta.py", line 301, in _get_build_requires
+      self.run_setup()
+    File "C:\Users\HP\AppData\Local\Temp\pip-build-env-giaolk1d\overlay\Lib\site-packages\setuptools\build_meta.py", line 518, in run_setup
+      super().run_setup(setup_script=setup_script)
+    File "C:\Users\HP\AppData\Local\Temp\pip-build-env-giaolk1d\overlay\Lib\site-packages\setuptools\build_meta.py", line 317, in run_setup
+      exec(code, locals())
+    File "<string>", line 12, in <module>
+  ModuleNotFoundError: No module named 'Cython'
+  error: subprocess-exited-with-error
+  
+  Getting requirements to build wheel did not run successfully.
+  exit code: 1
+  
+  No available output.
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+  full command: 'C:\Users\HP\Documents\ai-cover-song-backend\venv\Scripts\python.exe' 'C:\Users\HP\Documents\ai-cover-song-backend\venv\lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py' get_requires_for_build_wheel 'C:\Users\HP\AppData\Local\Temp\tmphoq0azkb'
+  cwd: C:\Users\HP\AppData\Local\Temp\pip-install-aau7p15q\madmom_a62d7c8a4d96415f90c9e350a8a1f798
+  Getting requirements to build wheel: finished with status 'error'
+ERROR: Failed to build 'madmom' when getting requirements to build wheel
