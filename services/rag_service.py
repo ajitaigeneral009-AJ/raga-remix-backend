@@ -250,3 +250,15 @@ def health_check(self) -> bool:
         return True
     except Exception:
         return False
+    
+def health_check(self) -> dict:
+    """Returns health status of the RAG system."""
+    try:
+        doc_count = len(self.knowledge_base) if hasattr(self, 'knowledge_base') else 0
+        return {
+            "status": "healthy",
+            "documents_loaded": doc_count,
+            "model": getattr(self, 'model_name', 'unknown')
+        }
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}

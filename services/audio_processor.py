@@ -271,3 +271,10 @@ def health_check(self) -> bool:
         return True
     except Exception:
         return False
+    
+def health_check(self) -> dict:
+    """Returns health status of the audio processor."""
+    try:
+        return {"status": "healthy", "ready": True}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
