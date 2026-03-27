@@ -239,3 +239,14 @@ def get_rag_service() -> RagaMusicRAG:
     if _rag_system is None:
         _rag_system = RagaMusicRAG()
     return _rag_system
+
+def health_check(self) -> bool:
+    try:
+        if self.embeddings is None:
+            return False
+        if self.vectorstore is None:
+            return False
+        self.vectorstore.similarity_search("test", k=1)
+        return True
+    except Exception:
+        return False
