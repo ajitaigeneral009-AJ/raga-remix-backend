@@ -228,9 +228,30 @@ class RagaMusicRAG:
             logger.error(f"❌ Error generating recommendation: {e}")
             raise
 
+    # ------------------------------------------------------------------ #
+    # Health check method  
+    # ------------------------------------------------------------------ #
+
+    def health_check(self) -> dict:
+        """Returns health status of the RAG system."""
+        try:
+            # Test vector store is responsive
+            self.vectorstore.similarity_search("test", k=1)
+            collection = self.vectorstore._collection
+            doc_count = collection.count() if collection else 0
+            return {
+                "status": "healthy",
+                "documents_loaded": doc_count,
+                "model": self.llm.model_name if hasattr(self.llm, 'model_name') else "unknown"
+            }
+        except Exception as e:
+            return {"status": "unhealthy", "error": str(e)}
+
 
 # Global singleton instance
 _rag_system: RagaMusicRAG | None = None
+
+
 
 
 def get_rag_service() -> RagaMusicRAG:
@@ -239,26 +260,3 @@ def get_rag_service() -> RagaMusicRAG:
     if _rag_system is None:
         _rag_system = RagaMusicRAG()
     return _rag_system
-
-def health_check(self) -> bool:
-    try:
-        if self.embeddings is None:
-            return False
-        if self.vectorstore is None:
-            return False
-        self.vectorstore.similarity_search("test", k=1)
-        return True
-    except Exception:
-        return False
-    
-def health_check(self) -> dict:
-    """Returns health status of the RAG system."""
-    try:
-        doc_count = len(self.knowledge_base) if hasattr(self, 'knowledge_base') else 0
-        return {
-            "status": "healthy",
-            "documents_loaded": doc_count,
-            "model": getattr(self, 'model_name', 'unknown')
-        }
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}

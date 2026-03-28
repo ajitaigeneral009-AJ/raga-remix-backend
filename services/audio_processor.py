@@ -262,19 +262,3 @@ if __name__ == "__main__":
     print("Testing Audio Processor...")
     processor = get_audio_processor()
     print("✅ Audio Processor ready!")
-
-def health_check(self) -> bool:
-    try:
-        import librosa
-        import numpy as np
-        import soundfile as sf
-        return True
-    except Exception:
-        return False
-    
-def health_check(self) -> dict:
-    """Returns health status of the audio processor."""
-    try:
-        return {"status": "healthy", "ready": True}
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
