@@ -235,14 +235,14 @@ class RagaMusicRAG:
     def health_check(self) -> dict:
         """Returns health status of the RAG system."""
         try:
-            # Test vector store is responsive
-            self.vectorstore.similarity_search("test", k=1)
-            collection = self.vectorstore._collection
-            doc_count = collection.count() if collection else 0
+            # Simple check: just do a similarity search
+            results = self.vectorstore.similarity_search("raga", k=1)
+            #collection = self.vectorstore._collection
+            #doc_count = collection.count() if collection else 0
             return {
                 "status": "healthy",
-                "documents_loaded": doc_count,
-                "model": self.llm.model_name if hasattr(self.llm, 'model_name') else "unknown"
+                "documents_loaded": len(results),
+                "model": getattr(self.llm, "model_name", "unknown"),
             }
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}

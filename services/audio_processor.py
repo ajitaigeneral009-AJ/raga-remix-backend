@@ -230,19 +230,14 @@ class AudioProcessor:
     def health_check(self) -> Dict[str, str]:
         """Check audio processor health."""
         try:
-            result = subprocess.run(
-                ["demucs", "--help"],
-                capture_output=True,
-                timeout=5,
-            )
-            if result.returncode == 0:
-                return {"status": "healthy", "message": "Audio processor operational"}
-            return {
-                "status": "degraded",
-                "message": "Demucs not responding properly",
-            }
-        except FileNotFoundError:
-            return {"status": "unhealthy", "message": "Demucs not installed"}
+            import librosa
+            import numpy as np
+            import soundfile as sf
+            return {"status": "healthy", "message": "Audio processor operational"}
+        
+        except ImportError as e:
+            return {"status": "unhealthy", "message": f"Missing dependency: {e}"}
+        
         except Exception as e:
             return {"status": "unhealthy", "message": str(e)}
 
