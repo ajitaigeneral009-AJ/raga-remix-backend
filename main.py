@@ -116,7 +116,7 @@ async def root():
     }
 
 
-@app.get("/health", response_model=HealthResponse, tags=["Status"])
+@app.api_route("/health", methods=["GET", "HEAD"], response_model=HealthResponse, tags=["Status"])
 async def health_check():
     """Health check endpoint"""
     
