@@ -19,7 +19,7 @@ torchaudio>=2.1.1
 
 # RAG / LLM
 langchain==0.2.16
-langchain-openai==0.1.23
+langchain-openai==0.1.8
 langchain-community==0.2.16
 langchain-core==0.2.40
 langchain-chroma==0.1.4
