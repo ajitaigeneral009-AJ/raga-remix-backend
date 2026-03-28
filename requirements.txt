@@ -1,5 +1,5 @@
 # Core API
-fastapi>=0.104.1
+fastapi==0.111.0
 uvicorn==0.30.1
 python-multipart>=0.0.6
 pydantic==2.6.4
@@ -24,10 +24,12 @@ langchain-community==0.2.16
 langchain-core==0.2.40
 langchain-chroma==0.1.4
 chromadb==0.5.3
-openai==1.40.0
-fastapi==0.111.0
 tiktoken>=0.5.2
 google-genai>=1.0.0
+
+# OpenAI — pinned to avoid httpx proxies conflict
+openai==1.30.5
+httpx==0.27.2
 
 # Embeddings
 sentence-transformers>=2.2.2
@@ -37,7 +39,6 @@ faiss-cpu>=1.7.4
 python-dotenv>=1.0.0
 pyyaml>=6.0.1
 aiofiles>=23.2.1
-httpx>=0.25.2
 loguru>=0.7.2
 pandas>=2.1.4
 scikit-learn>=1.3.2
