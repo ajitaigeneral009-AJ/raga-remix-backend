@@ -8,7 +8,7 @@ from typing import Dict, List
 from datetime import datetime
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 
 from rag_config import RAGConfig
