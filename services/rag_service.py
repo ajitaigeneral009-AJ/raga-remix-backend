@@ -68,7 +68,7 @@ class RagaMusicRAG:
     # Main query method
     # ------------------------------------------------------------------ #
 
-    def query(self, question: str = None, include_sources: bool = True, query_text: str = None, time_of_day: str = None, mood: str = None) -> Dict:, include_sources: bool = True) -> Dict:
+    def query(self, question: str = None, include_sources: bool = True, query_text: str = None, time_of_day: str = None, mood: str = None) -> Dict:
         """
         Query the RAG system with a music-related question.
 
