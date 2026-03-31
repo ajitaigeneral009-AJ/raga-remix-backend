@@ -304,7 +304,7 @@ async def generate_cover_with_style(
             instruments_list = [inst.strip() for inst in custom_instruments.split(",")]
 
         request = CoverGenerationRequest(
-            style=FusionStyle(style),
+            style=style,
             custom_instruments=instruments_list,
             tempo_ratio=tempo_ratio,
             pitch_semitones=pitch_semitones,

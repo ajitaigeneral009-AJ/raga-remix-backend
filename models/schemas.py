@@ -13,16 +13,92 @@ from pydantic import BaseModel, Field, validator
 # ============================================================
 
 class FusionStyle(str, Enum):
-    """Available fusion music styles"""
-    INDO_WESTERN_CLASSICAL = "indo_western_classical"
-    JAZZ_INDIAN_FUSION = "jazz_indian_fusion"
-    ROCK_RAGA_FUSION = "rock_raga_fusion"
-    BOLLYWOOD_ELECTRONIC = "bollywood_electronic"
-    EDM_INDIAN_FUSION = "edm_indian_fusion"
-    HIP_HOP_INDIAN = "hip_hop_indian"
-    SUFI_ROCK = "sufi_rock"
-    CARNATIC_JAZZ = "carnatic_jazz"
-    EDM_BHANGRA = "edm_bhangra"
+    indo_western_classical = "indo_western_classical"
+    jazz_indian_fusion = "jazz_indian_fusion"
+    rock_raga_fusion = "rock_raga_fusion"
+    edm_indian_fusion = "edm_indian_fusion"
+    bollywood_electronic = "bollywood_electronic"
+    hip_hop_indian = "hip_hop_indian"
+    sufi_rock = "sufi_rock"
+    carnatic_jazz = "carnatic_jazz"
+    edm_bhangra = "edm_bhangra"
+
+
+STYLE_ALIASES: Dict[str, str] = {
+    # Fusion styles from UI
+    "indian-western classical": "indo_western_classical",
+    "indo-western classical": "indo_western_classical",
+    "east meets west": "indo_western_classical",
+    "jazz-indian fusion": "jazz_indian_fusion",
+    "rock-raag fusion": "rock_raga_fusion",
+    "edm-indian fusion": "edm_indian_fusion",
+    "bollywood-electronic": "bollywood_electronic",
+    "hip-hop-indian": "hip_hop_indian",
+    "world music fusion": "indo_western_classical",
+    "bhangra-rock": "edm_bhangra",
+
+    # Indian styles from UI -> mapped to closest supported fusion/backend styles
+    "hindustani classical": "indo_western_classical",
+    "carnatic music": "carnatic_jazz",
+    "light classical": "indo_western_classical",
+    "qawwali": "sufi_rock",
+    "sufi music": "sufi_rock",
+    "thumri": "indo_western_classical",
+    "kajari": "indo_western_classical",
+    "ghazal": "indo_western_classical",
+    "bollywood pop": "bollywood_electronic",
+    "bollywood folk": "indo_western_classical",
+    "classical fusion": "indo_western_classical",
+    "devotional bhajan": "indo_western_classical",
+
+    # Western styles from UI -> mapped to closest supported backend styles
+    "rock": "rock_raga_fusion",
+    "metal": "rock_raga_fusion",
+    "pop": "bollywood_electronic",
+    "contemporary": "indo_western_classical",
+    "jazz": "jazz_indian_fusion",
+    "country": "indo_western_classical",
+    "r&b": "hip_hop_indian",
+    "soul": "jazz_indian_fusion",
+    "acoustic": "indo_western_classical",
+    "folk": "indo_western_classical",
+    "reggae": "hip_hop_indian",
+    "electronic": "edm_indian_fusion",
+    "edm": "edm_indian_fusion",
+    "hip-hop": "hip_hop_indian",
+    "rap": "hip_hop_indian",
+    "funk": "jazz_indian_fusion",
+    "disco": "bollywood_electronic",
+    "blues": "jazz_indian_fusion",
+    "classical orchestral": "indo_western_classical",
+}
+
+
+STYLE_DEFAULT_INSTRUMENTS: Dict[str, List[str]] = {
+    "indo_western_classical": ["tabla", "sitar", "acoustic_guitar"],
+    "jazz_indian_fusion": ["tabla", "piano", "saxophone"],
+    "rock_raga_fusion": ["drums", "electric_guitar", "bass"],
+    "edm_indian_fusion": ["synthesizer", "bass", "tabla"],
+    "bollywood_electronic": ["synthesizer", "tabla", "pads"],
+    "hip_hop_indian": ["drums", "bass", "bansuri"],
+    "sufi_rock": ["tabla", "acoustic_guitar", "harmonium"],
+    "carnatic_jazz": ["mridangam", "violin", "piano"],
+    "edm_bhangra": ["dhol", "bass", "synthesizer"],
+}
+
+
+VALID_INSTRUMENTS = [
+    # Indian
+    "sitar", "sarod", "veena", "sarangi", "dilruba", "israj", "mandolin",
+    "bansuri", "shehnai", "nadaswaram", "tabla", "mridangam", "ghatam",
+    "dholak", "harmonium",
+    # Western
+    "acoustic_guitar", "electric_guitar", "violin", "cello", "bass",
+    "saxophone", "trumpet", "trombone", "clarinet", "flute", "drums",
+    "cymbals", "timpani", "piano", "synthesizer", "organ",
+    # Common UI variants
+    "acoustic guitar", "electric guitar"
+]
 
 
 class ProcessingMode(str, Enum):
