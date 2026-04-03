@@ -193,7 +193,7 @@ async def analyze_song(request: SongAnalysisRequest):
                 }
                 for inst_name, inst in list(result["recommendations"]["instruments"].items())[:5]
             ],
-            fusion_style_suggestion=FusionStyle.INDO_WESTERN_CLASSICAL.value,
+            fusion_style_suggestion=FusionStyle.indo_western_classical,
             analysis_context=result["answer"],
             confidence_score=result["confidence"],
         )
