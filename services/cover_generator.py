@@ -188,18 +188,16 @@ class CoverGenerator:
             if request.target_raga:
                 selected_raga = request.target_raga
             else:
-                recommended_ragas = rag_result["recommendations"]["ragas"]
+recommended_ragas = rag_result["recommendations"]["ragas"]
                 selected_raga = (
-                    recommended_ragas[0]["name"] if recommended_ragas else "Yaman"
+                    list(recommended_ragas.keys())[0] if recommended_ragas else "Yaman"
                 )
-
             # Select instruments
             if request.custom_instruments:
                 instruments = request.custom_instruments
             else:
                 recommended_instruments = rag_result["recommendations"]["instruments"]
-                instruments = [inst["name"] for inst in recommended_instruments[:3]]
-
+            instruments = list(recommended_instruments.keys())[:3]
             duration = time.time() - step_start
 
             logger.info(f"   ✅ Selected Raga: {selected_raga}")
