@@ -247,6 +247,92 @@ async def recommend_instruments(request: InstrumentRecommendationRequest):
 
 
 # ------------------------------------------------------------------ #
+
+@app.post("/api/process-url", tags=["URL Processing"])
+async def process_url(
+    url: str = Form(...),
+    style: str = Form("indo_western_classical"),
+):
+    """
+    Process YouTube/Spotify URL - Download audio and prepare for cover generation.
+    
+    Args:
+        url: YouTube or Spotify URL
+        style: Fusion style to apply
+    
+    Returns:
+        Dict with download status and job_id for processing
+    """
+    logger.info(f"URL Processing request: {url}")
+    
+    try:
+        import yt_dlp
+        
+        # Configure yt-dlp options
+        upload_dir = settings.TEMP_UPLOAD_DIR
+        timestamp = int(time.time())
+        output_template = str(upload_dir / f"{timestamp}_%(title)s.%(ext)s")
+        
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'outtmpl': output_template,
+            'quiet': True,
+            'no_warnings': True,
+        }
+        
+        logger.info("Downloading audio from URL...")
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            title = info.get('title', 'audio')
+            
+        # Find the downloaded file
+        downloaded_files = list(upload_dir.glob(f"{timestamp}_*.mp3"))
+        
+        if not downloaded_files:
+            raise HTTPException(
+                status_code=500,
+                detail="Download completed but file not found"
+            )
+        
+        audio_path = downloaded_files[0]
+        logger.info(f"Audio downloaded: {audio_path}")
+        
+        # Create a cover generation request
+        request = CoverGenerationRequest(
+            style=style,
+            custom_instruments=None,
+            tempo_ratio=1.0,
+            pitch_semitones=0,
+            energy_level=0.7,
+            preserve_vocals=True,
+            target_raga=None,
+        )
+        
+        # Generate cover
+        cover_generator = get_cover_generator()
+        response = await cover_generator.generate_cover(
+            audio_path=str(audio_path),
+            request=request,
+        )
+        
+        logger.info(f"URL processing complete: {response.status}")
+        return response
+        
+    except ImportError:
+        raise HTTPException(
+            status_code=500,
+            detail="yt-dlp not installed. Please install: pip install yt-dlp"
+        )
+    except Exception as e:
+        logger.error(f"URL processing failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Cover Generation Endpoints
 # ------------------------------------------------------------------ #
 
