@@ -188,8 +188,8 @@ class CoverGenerator:
             if request.target_raga:
                 selected_raga = request.target_raga
             else:
-recommended_ragas = rag_result["recommendations"]["ragas"]
-                selected_raga = (
+            recommended_ragas = rag_result["recommendations"]["ragas"]
+                            selected_raga = (
                     list(recommended_ragas.keys())[0] if recommended_ragas else "Yaman"
                 )
             # Select instruments
