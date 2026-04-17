@@ -342,6 +342,7 @@ async def process_url(
     tags=["Cover Generation"],
 )
 async def generate_cover_with_style(
+        mode: str,  # Path parameter for processing mode
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     style: str = Form(...),
@@ -362,6 +363,7 @@ async def generate_cover_with_style(
     """
     logger.info("=" * 70)
     logger.info("COVER GENERATION REQUEST")
+        logger.info(f"Mode: {mode}")
     logger.info(f"File: {file.filename}")
     logger.info(f"Style: {style}")
     logger.info(f"Instruments: {custom_instruments}")
@@ -370,6 +372,13 @@ async def generate_cover_with_style(
     try:
         if not file.filename:
             raise HTTPException(status_code=400, detail="No file provided")
+
+                # Validate mode parameter
+        if mode not in ["upload", "full-remix"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid mode '{mode}'. Must be 'upload' or 'full-remix'"
+            )
 
         file_ext = Path(file.filename).suffix.lower()
         if file_ext not in settings.ALLOWED_AUDIO_FORMATS:
