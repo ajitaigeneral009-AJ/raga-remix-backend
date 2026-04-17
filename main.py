@@ -363,7 +363,7 @@ async def generate_cover_with_style(
     """
     logger.info("=" * 70)
     logger.info("COVER GENERATION REQUEST")
-        logger.info(f"Mode: {mode}")
+    logger.info(f"Mode: {mode}")
     logger.info(f"File: {file.filename}")
     logger.info(f"Style: {style}")
     logger.info(f"Instruments: {custom_instruments}")
