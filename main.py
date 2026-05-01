@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError
 
@@ -25,6 +25,7 @@ from models.schemas import (
     HealthResponse,
     FusionStyle,
     ProcessingMode,
+    InstrumentMode,
 )
 from services.rag_service import get_rag_service
 from services.audio_processor import get_audio_processor
@@ -36,6 +37,7 @@ logging.basicConfig(
     level=logging.INFO if settings.DEBUG else logging.WARNING,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
+
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
@@ -56,12 +58,8 @@ app.add_middleware(
 
 startup_time = time.time()
 
-# ------------------------------------------------------------------ #
-# Background service initializer (non-blocking)
-# ------------------------------------------------------------------ #
 
 async def init_services_background():
-    """Initialize heavy services in background so port binds immediately."""
     loop = asyncio.get_event_loop()
     try:
         logger.info("=" * 70)
@@ -91,24 +89,17 @@ async def init_services_background():
 
 @app.on_event("startup")
 async def startup_event():
-    """Start port binding immediately, init services in background."""
     logger.info("🚀 Server starting — services loading in background...")
     asyncio.create_task(init_services_background())
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Cleanup on shutdown."""
     logger.info("Server shutting down...")
 
 
-# ------------------------------------------------------------------ #
-# Status Endpoints
-# ------------------------------------------------------------------ #
-
 @app.api_route("/", methods=["GET", "HEAD"], tags=["Status"])
 async def root():
-    """Root endpoint."""
     return {
         "message": "Raga Remix Studio API",
         "version": "1.0.0",
@@ -119,7 +110,6 @@ async def root():
 
 @app.api_route("/health", methods=["GET", "HEAD"], response_model=HealthResponse, tags=["Status"])
 async def health_check():
-    """Health check endpoint."""
     try:
         rag_service = get_rag_service()
         rag_health = rag_service.health_check()
@@ -142,7 +132,6 @@ async def health_check():
             version="1.0.0",
             uptime_seconds=uptime,
         )
-
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return HealthResponse(
@@ -150,20 +139,12 @@ async def health_check():
             rag_status="error",
             audio_processor_status="error",
             version="1.0.0",
+            uptime_seconds=0,
         )
 
 
-# ------------------------------------------------------------------ #
-# Analysis Endpoints
-# ------------------------------------------------------------------ #
-
 @app.post("/api/analyze-song", response_model=SongAnalysisResponse, tags=["Analysis"])
 async def analyze_song(request: SongAnalysisRequest):
-    """
-    Analyze song characteristics and get RAG-powered recommendations.
-    Uses the RAG system to provide intelligent recommendations for
-    ragas, instruments, and fusion styles based on the query.
-    """
     logger.info(f"Song analysis request: {request.query}")
     try:
         rag_service = get_rag_service()
@@ -198,10 +179,6 @@ async def analyze_song(request: SongAnalysisRequest):
             confidence_score=result["confidence"],
         )
 
-        logger.info(
-            f"Analysis complete: {len(response.recommended_ragas)} ragas, "
-            f"{len(response.recommended_instruments)} instruments"
-        )
         return response
 
     except Exception as e:
@@ -215,7 +192,6 @@ async def analyze_song(request: SongAnalysisRequest):
     tags=["Analysis"],
 )
 async def recommend_instruments(request: InstrumentRecommendationRequest):
-    """Get instrument recommendations for specific raga and fusion style."""
     logger.info(f"Instrument recommendation: {request.raga_name} / {request.fusion_style}")
     try:
         rag_service = get_rag_service()
@@ -239,6 +215,7 @@ async def recommend_instruments(request: InstrumentRecommendationRequest):
             ],
             arrangement_suggestion=f"Recommended {request.fusion_style.value} arrangement",
         )
+
         return response
 
     except Exception as e:
@@ -246,63 +223,48 @@ async def recommend_instruments(request: InstrumentRecommendationRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ------------------------------------------------------------------ #
-
 @app.post("/api/process-url", tags=["URL Processing"])
 async def process_url(
     url: str = Form(...),
     style: str = Form("indo_western_classical"),
+    instrument_mode: InstrumentMode = Form(InstrumentMode.mute),
 ):
-    """
-    Process YouTube/Spotify URL - Download audio and prepare for cover generation.
-    
-    Args:
-        url: YouTube or Spotify URL
-        style: Fusion style to apply
-    
-    Returns:
-        Dict with download status and job_id for processing
-    """
     logger.info(f"URL Processing request: {url}")
-    
+
     try:
         import yt_dlp
-        
-        # Configure yt-dlp options
+
         upload_dir = settings.TEMP_UPLOAD_DIR
         timestamp = int(time.time())
         output_template = str(upload_dir / f"{timestamp}_%(title)s.%(ext)s")
-        
+
         ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
+            "format": "bestaudio/best",
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
             }],
-            'outtmpl': output_template,
-            'quiet': True,
-            'no_warnings': True,
+            "outtmpl": output_template,
+            "quiet": True,
+            "no_warnings": True,
         }
-        
+
         logger.info("Downloading audio from URL...")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            title = info.get('title', 'audio')
-            
-        # Find the downloaded file
+            ydl.extract_info(url, download=True)
+
         downloaded_files = list(upload_dir.glob(f"{timestamp}_*.mp3"))
-        
+
         if not downloaded_files:
             raise HTTPException(
                 status_code=500,
                 detail="Download completed but file not found"
             )
-        
+
         audio_path = downloaded_files[0]
         logger.info(f"Audio downloaded: {audio_path}")
-        
-        # Create a cover generation request
+
         request = CoverGenerationRequest(
             style=style,
             custom_instruments=None,
@@ -310,19 +272,19 @@ async def process_url(
             pitch_semitones=0,
             energy_level=0.7,
             preserve_vocals=True,
+            instrument_mode=instrument_mode,
             target_raga=None,
         )
-        
-        # Generate cover
+
         cover_generator = get_cover_generator()
         response = await cover_generator.generate_cover(
             audio_path=str(audio_path),
             request=request,
         )
-        
+
         logger.info(f"URL processing complete: {response.status}")
         return response
-        
+
     except ImportError:
         raise HTTPException(
             status_code=500,
@@ -333,16 +295,13 @@ async def process_url(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Cover Generation Endpoints
-# ------------------------------------------------------------------ #
-
 @app.post(
     "/api/{mode}/cover-with-style",
     response_model=CoverGenerationResponse,
     tags=["Cover Generation"],
 )
 async def generate_cover_with_style(
-        mode: str,  # Path parameter for processing mode
+    mode: str,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     style: str = Form(...),
@@ -351,29 +310,22 @@ async def generate_cover_with_style(
     pitch_semitones: int = Form(0),
     energy_level: float = Form(0.7),
     preserve_vocals: bool = Form(True),
+    instrument_mode: InstrumentMode = Form(InstrumentMode.mute),
     target_raga: Optional[str] = Form(None),
 ):
-    """
-    Generate cover song with specified fusion style.
-    1. Uploads audio file
-    2. Uses RAG to select raga & instruments
-    3. Separates stems
-    4. Applies transformations
-    5. Returns generated cover
-    """
     logger.info("=" * 70)
     logger.info("COVER GENERATION REQUEST")
     logger.info(f"Mode: {mode}")
     logger.info(f"File: {file.filename}")
     logger.info(f"Style: {style}")
     logger.info(f"Instruments: {custom_instruments}")
+    logger.info(f"Instrument mode: {instrument_mode}")
     logger.info("=" * 70)
 
     try:
         if not file.filename:
             raise HTTPException(status_code=400, detail="No file provided")
 
-                # Validate mode parameter
         if mode not in ["upload", "full-remix"]:
             raise HTTPException(
                 status_code=400,
@@ -392,6 +344,7 @@ async def generate_cover_with_style(
         with open(upload_path, "wb") as f:
             content = await file.read()
             f.write(content)
+
         logger.info(f"File saved: {upload_path}")
 
         instruments_list = None
@@ -405,6 +358,7 @@ async def generate_cover_with_style(
             pitch_semitones=pitch_semitones,
             energy_level=energy_level,
             preserve_vocals=preserve_vocals,
+            instrument_mode=instrument_mode,
             target_raga=target_raga,
         )
 
@@ -427,7 +381,6 @@ async def generate_cover_with_style(
 
 @app.get("/api/download/{job_id}", tags=["Cover Generation"])
 async def download_cover(job_id: str):
-    """Download generated cover by job ID."""
     logger.info(f"Download request: {job_id}")
     try:
         cover_generator = get_cover_generator()
@@ -455,38 +408,38 @@ async def download_cover(job_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ------------------------------------------------------------------ #
-# Legacy Endpoint
-# ------------------------------------------------------------------ #
-
 @app.post("/process", tags=["Legacy"])
 async def process_audio_legacy(
     file: UploadFile = File(...),
     mode: str = Form(...),
 ):
-    """Legacy endpoint - redirects to new cover generation."""
-    logger.warning(
-        f"Using legacy endpoint /process - please migrate to /api/{{mode}}/cover-with-style"
-    )
+    logger.warning("Using legacy endpoint /process")
+
     mode_mapping = {
         "full_remix": "indo_western_classical",
         "remove_vocals": "bollywood_electronic",
         "remove_instruments": "sufi_rock",
     }
+
     style = mode_mapping.get(mode, "indo_western_classical")
     return await generate_cover_with_style(
+        mode="upload",
         background_tasks=BackgroundTasks(),
         file=file,
         style=style,
+        custom_instruments=None,
+        tempo_ratio=1.0,
+        pitch_semitones=0,
+        energy_level=0.7,
+        preserve_vocals=True,
+        instrument_mode=InstrumentMode.mute,
+        target_raga=None,
     )
 
 
-# ------------------------------------------------------------------ #
-# Entry point
-# ------------------------------------------------------------------ #
-
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "main:app",
         host=settings.HOST,
