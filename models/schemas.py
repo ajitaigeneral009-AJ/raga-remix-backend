@@ -24,8 +24,13 @@ class FusionStyle(str, Enum):
     edm_bhangra = "edm_bhangra"
 
 
+class InstrumentMode(str, Enum):
+    mute = "mute"
+    original = "original"
+    ai = "ai"
+
+
 STYLE_ALIASES: Dict[str, str] = {
-    # Fusion styles from UI
     "indian-western classical": "indo_western_classical",
     "indo-western classical": "indo_western_classical",
     "east meets west": "indo_western_classical",
@@ -37,7 +42,6 @@ STYLE_ALIASES: Dict[str, str] = {
     "world music fusion": "indo_western_classical",
     "bhangra-rock": "edm_bhangra",
 
-    # Indian styles from UI -> mapped to closest supported fusion/backend styles
     "hindustani classical": "indo_western_classical",
     "carnatic music": "carnatic_jazz",
     "light classical": "indo_western_classical",
@@ -51,7 +55,6 @@ STYLE_ALIASES: Dict[str, str] = {
     "classical fusion": "indo_western_classical",
     "devotional bhajan": "indo_western_classical",
 
-    # Western styles from UI -> mapped to closest supported backend styles
     "rock": "rock_raga_fusion",
     "metal": "rock_raga_fusion",
     "pop": "bollywood_electronic",
@@ -73,7 +76,6 @@ STYLE_ALIASES: Dict[str, str] = {
     "classical orchestral": "indo_western_classical",
 }
 
-
 STYLE_DEFAULT_INSTRUMENTS: Dict[str, List[str]] = {
     "indo_western_classical": ["tabla", "sitar", "acoustic_guitar"],
     "jazz_indian_fusion": ["tabla", "piano", "saxophone"],
@@ -86,23 +88,18 @@ STYLE_DEFAULT_INSTRUMENTS: Dict[str, List[str]] = {
     "edm_bhangra": ["dhol", "bass", "synthesizer"],
 }
 
-
 VALID_INSTRUMENTS = [
-    # Indian
     "sitar", "sarod", "veena", "sarangi", "dilruba", "israj", "mandolin",
     "bansuri", "shehnai", "nadaswaram", "tabla", "mridangam", "ghatam",
     "dholak", "harmonium",
-    # Western
     "acoustic_guitar", "electric_guitar", "violin", "cello", "bass",
     "saxophone", "trumpet", "trombone", "clarinet", "flute", "drums",
     "cymbals", "timpani", "piano", "synthesizer", "organ",
-    # Common UI variants
     "acoustic guitar", "electric guitar"
 ]
 
 
 class ProcessingMode(str, Enum):
-    """Audio processing modes"""
     FULL_REMIX = "full_remix"
     REMOVE_VOCALS = "remove_vocals"
     REMOVE_INSTRUMENTS = "remove_instruments"
@@ -110,7 +107,6 @@ class ProcessingMode(str, Enum):
 
 
 class Mood(str, Enum):
-    """Musical moods"""
     ROMANTIC = "romantic"
     DEVOTIONAL = "devotional"
     MELANCHOLIC = "melancholic"
@@ -121,7 +117,6 @@ class Mood(str, Enum):
 
 
 class TimeOfDay(str, Enum):
-    """Time of day for raga selection"""
     MORNING = "morning"
     AFTERNOON = "afternoon"
     EVENING = "evening"
@@ -134,7 +129,6 @@ class TimeOfDay(str, Enum):
 # ============================================================
 
 class AudioFeatures(BaseModel):
-    """Extracted audio features"""
     tempo_bpm: float = Field(..., description="Tempo in beats per minute")
     key: str = Field(..., description="Musical key (e.g., 'C major')")
     energy: float = Field(..., ge=0, le=1, description="Energy level 0-1")
@@ -150,18 +144,16 @@ class AudioFeatures(BaseModel):
 # ============================================================
 
 class RagaInfo(BaseModel):
-    """Raga information"""
     name: str = Field(..., description="Raga name")
-    notes: List[str] = Field(default_factory=list, description="Raga notes (Sa Re Ga...)")
+    notes: List[str] = Field(default_factory=list, description="Raga notes")
     time_of_day: str = Field(default="", description="Preferred time")
     mood: str = Field(default="", description="Associated mood")
     compatibility_score: float = Field(default=0.8, ge=0, le=1, description="Match score")
 
 
 class InstrumentInfo(BaseModel):
-    """Instrument information"""
     name: str = Field(..., description="Instrument name")
-    category: str = Field(..., description="Category (Indian/Western/Electronic)")
+    category: str = Field(..., description="Category")
     compatibility_score: float = Field(default=0.8, ge=0, le=1, description="Match score")
     role: str = Field(default="melody", description="Musical role")
 
@@ -171,17 +163,16 @@ class InstrumentInfo(BaseModel):
 # ============================================================
 
 class CoverGenerationRequest(BaseModel):
-    """Request for cover generation"""
     style: FusionStyle = Field(..., description="Fusion style to apply")
     custom_instruments: Optional[List[str]] = Field(
         None,
-        description="Custom instruments (e.g., ['Tabla', 'Guitar'])"
+        description="Custom instruments"
     )
     tempo_ratio: float = Field(
         1.0,
         ge=0.5,
         le=2.0,
-        description="Tempo adjustment ratio (1.0 = original)"
+        description="Tempo adjustment ratio"
     )
     pitch_semitones: int = Field(
         0,
@@ -199,28 +190,29 @@ class CoverGenerationRequest(BaseModel):
         True,
         description="Whether to preserve original vocals"
     )
+    instrument_mode: InstrumentMode = Field(
+        InstrumentMode.mute,
+        description="How to handle accompaniment: mute, original, or ai"
+    )
     target_raga: Optional[str] = Field(
         None,
         description="Specific raga to target (optional)"
     )
-    
+
     @validator("custom_instruments")
     def validate_instruments(cls, v):
-        """Validate instrument list"""
         if v and len(v) > 10:
             raise ValueError("Maximum 10 instruments allowed")
         return v
 
 
 class SongAnalysisRequest(BaseModel):
-    """Request for RAG-powered song analysis"""
     query: str = Field(..., min_length=3, description="Analysis query")
     time_of_day: Optional[TimeOfDay] = Field(None, description="Time constraint")
     desired_mood: Optional[Mood] = Field(None, description="Mood constraint")
 
 
 class InstrumentRecommendationRequest(BaseModel):
-    """Request for instrument recommendations"""
     raga_name: str = Field(..., description="Raga name")
     fusion_style: FusionStyle = Field(..., description="Fusion style")
     max_instruments: int = Field(5, ge=1, le=10, description="Max recommendations")
@@ -231,15 +223,13 @@ class InstrumentRecommendationRequest(BaseModel):
 # ============================================================
 
 class ProcessingStep(BaseModel):
-    """Single processing step info"""
     step: str = Field(..., description="Step name")
-    status: str = Field(..., description="Status (completed/failed/in_progress)")
+    status: str = Field(..., description="Status")
     duration_seconds: Optional[float] = Field(None, description="Step duration")
     details: Dict[str, Any] = Field(default_factory=dict, description="Step details")
 
 
 class CoverGenerationResponse(BaseModel):
-    """Response from cover generation"""
     job_id: str = Field(..., description="Unique job identifier")
     status: str = Field(..., description="Job status")
     output_url: Optional[str] = Field(None, description="Download URL")
@@ -255,44 +245,21 @@ class CoverGenerationResponse(BaseModel):
 
 
 class SongAnalysisResponse(BaseModel):
-    """Response from song analysis"""
-    recommended_ragas: List[RagaInfo] = Field(
-        default_factory=list,
-        description="Recommended ragas"
-    )
-    recommended_instruments: List[InstrumentInfo] = Field(
-        default_factory=list,
-        description="Recommended instruments"
-    )
-    fusion_style_suggestion: FusionStyle = Field(
-        ...,
-        description="Suggested fusion style"
-    )
+    recommended_ragas: List[RagaInfo] = Field(default_factory=list, description="Recommended ragas")
+    recommended_instruments: List[InstrumentInfo] = Field(default_factory=list, description="Recommended instruments")
+    fusion_style_suggestion: FusionStyle = Field(..., description="Suggested fusion style")
     analysis_context: str = Field(..., description="Detailed analysis")
-    confidence_score: float = Field(
-        ...,
-        ge=0,
-        le=1,
-        description="Confidence in recommendations"
-    )
+    confidence_score: float = Field(..., ge=0, le=1, description="Confidence in recommendations")
 
 
 class InstrumentRecommendationResponse(BaseModel):
-    """Response from instrument recommendation"""
     raga_name: str = Field(..., description="Input raga")
     fusion_style: FusionStyle = Field(..., description="Input style")
-    recommended_instruments: List[InstrumentInfo] = Field(
-        default_factory=list,
-        description="Recommendations"
-    )
-    arrangement_suggestion: str = Field(
-        ...,
-        description="Arrangement advice"
-    )
+    recommended_instruments: List[InstrumentInfo] = Field(default_factory=list, description="Recommendations")
+    arrangement_suggestion: str = Field(..., description="Arrangement advice")
 
 
 class HealthResponse(BaseModel):
-    """Health check response"""
     status: str = Field(..., description="Overall status")
     rag_status: str = Field(..., description="RAG service status")
     audio_processor_status: str = Field(..., description="Audio processor status")
@@ -305,15 +272,14 @@ class HealthResponse(BaseModel):
 # ============================================================
 
 class JobMetadata(BaseModel):
-    """Job tracking metadata"""
     job_id: str
-    status: str  # pending, processing, completed, failed
+    status: str
     created_at: float
     updated_at: float
     input_file: str
     output_file: Optional[str] = None
     request: Dict[str, Any]
-    progress: float = 0.0  # 0-1
+    progress: float = 0.0
     current_step: Optional[str] = None
     error: Optional[str] = None
 
@@ -322,11 +288,7 @@ class JobMetadata(BaseModel):
 # UTILITY FUNCTIONS
 # ============================================================
 
-def create_error_response(
-    job_id: str,
-    error_message: str
-) -> CoverGenerationResponse:
-    """Create error response"""
+def create_error_response(job_id: str, error_message: str) -> CoverGenerationResponse:
     return CoverGenerationResponse(
         job_id=job_id,
         status="failed",
@@ -341,7 +303,6 @@ def create_success_response(
     metadata: JobMetadata,
     processing_time: float
 ) -> CoverGenerationResponse:
-    """Create success response"""
     return CoverGenerationResponse(
         job_id=job_id,
         status="completed",
@@ -350,30 +311,3 @@ def create_success_response(
         instruments_used=metadata.request.get("custom_instruments", []),
         processing_time_seconds=processing_time
     )
-
-
-if __name__ == "__main__":
-    # Test models
-    print("Testing Pydantic models...")
-    
-    # Test request
-    request = CoverGenerationRequest(
-        style=FusionStyle.INDO_WESTERN_CLASSICAL,
-        custom_instruments=["Tabla", "Guitar"],
-        tempo_ratio=1.1,
-        energy_level=0.8
-    )
-    print(f"Request: {request.dict()}")
-    
-    # Test response
-    response = CoverGenerationResponse(
-        job_id="test-123",
-        status="completed",
-        output_url="/download/test-123",
-        applied_raga="Yaman",
-        instruments_used=["Tabla", "Guitar"],
-        processing_time_seconds=78.5
-    )
-    print(f"Response: {response.dict()}")
-    
-    print("✅ All models validated successfully!")
