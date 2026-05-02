@@ -43,17 +43,17 @@ class Settings(BaseSettings):
     ALLOWED_AUDIO_FORMATS: List[str] = [".mp3", ".wav", ".flac", ".ogg", ".m4a"]
     
     # Audio quality
-    SAMPLE_RATE: int = 44100
+        SAMPLE_RATE: int = 22050  # Halved from 44100 to reduce memory usage
     TARGET_LOUDNESS_LUFS: float = -14.0
     TEMP_UPLOAD_DIR: Path = Path(__file__).parent.parent / "temp_uploads"
     OUTPUT_DIR: Path = Path(__file__).parent.parent / "outputs"
     
     # Demucs configuration
-    DEMUCS_MODEL: str = "htdemucs"  # High-quality 4-stem model
+        DEMUCS_MODEL: str = "mdx_q"  # Quantized model - uses ~300MB RAM (fits free tier 512MB)
     DEMUCS_DEVICE: str = "cpu"  # or "cuda" for GPU
     
     # Processing limits
-    MAX_CONCURRENT_JOBS: int = 3
+        MAX_CONCURRENT_JOBS: int = 1  # Limit to 1 job to prevent OOM on free tier 512MB
     PROCESSING_TIMEOUT_SECONDS: int = 600
     
     # ============================================================
