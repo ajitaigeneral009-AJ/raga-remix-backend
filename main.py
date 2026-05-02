@@ -437,6 +437,28 @@ async def process_audio_legacy(
     )
 
 
+@app.get("/api/jobs/{job_id}/status", tags=["Cover Generation"])
+async def get_job_status(job_id: str):
+    """Get status of a cover generation job for polling."""
+    try:
+        cover_generator = get_cover_generator()
+        metadata = cover_generator.get_job_status(job_id)
+        if not metadata:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return {
+            "job_id": job_id,
+            "status": metadata.status,
+            "progress": metadata.progress,
+            "current_step": metadata.current_step,
+            "output_url": f"/api/download/{job_id}" if metadata.status == "completed" else None,
+            "error": metadata.error,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Job status check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
 
