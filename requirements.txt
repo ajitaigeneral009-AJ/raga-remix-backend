@@ -11,6 +11,7 @@ soundfile>=0.12.1
 pydub>=0.25.1
 scipy>=1.11.4
 numpy>=1.24.3
+resampy>=0.4.2
 
 # Deep learning
 demucs>=4.0.1
