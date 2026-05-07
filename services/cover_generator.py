@@ -41,7 +41,7 @@ class CoverGenerator:
         self,
         audio_path: str,
         request: CoverGenerationRequest,
-    ) -> str:
+        ) -> str:
         """Create a pending job and return job_id immediately."""
         import uuid as _uuid
         job_id = str(_uuid.uuid4())
