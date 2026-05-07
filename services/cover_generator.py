@@ -57,122 +57,122 @@ class CoverGenerator:
         logger.info(f"Created pending job {job_id}")
         return job_id
 
-    async def generate_cover(
-        self,
-        audio_path: str,
-        request: CoverGenerationRequest,
-        job_id: Optional[str] = None,
-        ) -> CoverGenerationResponse:
-        """
-        Generate cover song using 6-step pipeline
-
-        Pipeline:
-        1. RAG Analysis
-        2. Stem Separation
-        3. Raga Transformation
-        4. Instrument Synthesis
-        5. Tempo/Energy Adjustment
-        6. Mixing & Mastering
-        """
-        job_id = job_id or str(uuid.uuid4())
+        async def generate_cover(
+            self,
+            audio_path: str,
+            request: CoverGenerationRequest,
+            job_id: Optional[str] = None,
+            ) -> CoverGenerationResponse:
+            """
+            Generate cover song using 6-step pipeline
+    
+            Pipeline:
+            1. RAG Analysis
+            2. Stem Separation
+            3. Raga Transformation
+            4. Instrument Synthesis
+            5. Tempo/Energy Adjustment
+            6. Mixing & Mastering
+            """
+            job_id = job_id or str(uuid.uuid4())
             start_time = time.time()
-
-        logger.info("=" * 70)
-        logger.info(f"🎵 COVER GENERATION STARTED - Job ID: {job_id}")
-        logger.info(f"🎚️ Instrument mode: {request.instrument_mode}")
-        logger.info("=" * 70)
-
-if job_id in self.jobs:
-            job_metadata = self.jobs[job_id]
-            job_metadata.status = "processing"
-            job_metadata.updated_at = start_time
-        else:
-                job_metadata = JobMetadata(
-                job_id=job_id,
-                status="processing",
-                created_at=start_time,
-                updated_at=start_time,
-                input_file=audio_path,
-                request=request.dict(),
-            )
-                self.jobs[job_id] = job_metadata
-
-        try:
-            processing_steps: list[ProcessingStep] = []
-
-            step1_result = await self._step1_rag_analysis(audio_path, request)
-            processing_steps.append(step1_result)
-
-            step2_result = await self._step2_stem_separation(audio_path, job_id)
-            processing_steps.append(step2_result)
-
-            step3_result = await self._step3_raga_transformation(
-                step2_result.details["stems"],
-                step1_result.details["selected_raga"],
-                request,
-                job_id,
-            )
-            processing_steps.append(step3_result)
-
-            step4_result = await self._step4_instrument_synthesis(
-                stems=step2_result.details["stems"],
-                selected_raga=step1_result.details["selected_raga"],
-                instruments=step1_result.details["instruments"],
-                tempo_bpm=step1_result.details["audio_features"]["tempo_bpm"],
-                job_id=job_id,
-            )
-            processing_steps.append(step4_result)
-
-            step5_result = await self._step5_tempo_energy_adjustment(
-                step3_result.details["transformed_stems"],
-                step1_result.details["audio_features"]["tempo_bpm"],
-                job_id,
-            )
-            processing_steps.append(step5_result)
-
-            step6_result = await self._step6_mixing_mastering(
-                stems=step5_result.details["adjusted_stems"],
-                ai_instruments_path=step4_result.details.get("ai_instruments_path"),
-                instrument_mode=request.instrument_mode,
-                job_id=job_id,
-            )
-            processing_steps.append(step6_result)
-
-            output_file = step6_result.details["output_file"]
-            job_metadata.status = "completed"
-            job_metadata.output_file = output_file
-            job_metadata.updated_at = time.time()
-            job_metadata.progress = 1.0
-
-            processing_time = time.time() - start_time
-
+    
             logger.info("=" * 70)
-            logger.info(f"✅ COVER GENERATION COMPLETED - Job ID: {job_id}")
-            logger.info(f"⏱️ Processing Time: {processing_time:.1f}s")
+            logger.info(f"🎵 COVER GENERATION STARTED - Job ID: {job_id}")
+            logger.info(f"🎚️ Instrument mode: {request.instrument_mode}")
             logger.info("=" * 70)
-
-            return CoverGenerationResponse(
-                job_id=job_id,
-                status="completed",
-                output_url=f"/api/download/{job_id}",
-                processing_details={"steps": [step.dict() for step in processing_steps]},
-                applied_raga=step1_result.details.get("selected_raga"),
-                instruments_used=step1_result.details.get("instruments", []),
-                processing_time_seconds=processing_time,
-            )
-
-        except Exception as e:
-            logger.error(f"❌ Cover generation failed: {e}", exc_info=True)
-            job_metadata.status = "failed"
-            job_metadata.error = str(e)
-            job_metadata.updated_at = time.time()
-
-            return CoverGenerationResponse(
-                job_id=job_id,
-                status="failed",
-                error_message=str(e),
-                instruments_used=[],
-            )
+    
+    if job_id in self.jobs:
+                job_metadata = self.jobs[job_id]
+                job_metadata.status = "processing"
+                job_metadata.updated_at = start_time
+            else:
+                    job_metadata = JobMetadata(
+                    job_id=job_id,
+                    status="processing",
+                    created_at=start_time,
+                    updated_at=start_time,
+                    input_file=audio_path,
+                    request=request.dict(),
+                )
+                    self.jobs[job_id] = job_metadata
+    
+            try:
+                processing_steps: list[ProcessingStep] = []
+    
+                step1_result = await self._step1_rag_analysis(audio_path, request)
+                processing_steps.append(step1_result)
+    
+                step2_result = await self._step2_stem_separation(audio_path, job_id)
+                processing_steps.append(step2_result)
+    
+                step3_result = await self._step3_raga_transformation(
+                    step2_result.details["stems"],
+                    step1_result.details["selected_raga"],
+                    request,
+                    job_id,
+                )
+                processing_steps.append(step3_result)
+    
+                step4_result = await self._step4_instrument_synthesis(
+                    stems=step2_result.details["stems"],
+                    selected_raga=step1_result.details["selected_raga"],
+                    instruments=step1_result.details["instruments"],
+                    tempo_bpm=step1_result.details["audio_features"]["tempo_bpm"],
+                    job_id=job_id,
+                )
+                processing_steps.append(step4_result)
+    
+                step5_result = await self._step5_tempo_energy_adjustment(
+                    step3_result.details["transformed_stems"],
+                    step1_result.details["audio_features"]["tempo_bpm"],
+                    job_id,
+                )
+                processing_steps.append(step5_result)
+    
+                step6_result = await self._step6_mixing_mastering(
+                    stems=step5_result.details["adjusted_stems"],
+                    ai_instruments_path=step4_result.details.get("ai_instruments_path"),
+                    instrument_mode=request.instrument_mode,
+                    job_id=job_id,
+                )
+                processing_steps.append(step6_result)
+    
+                output_file = step6_result.details["output_file"]
+                job_metadata.status = "completed"
+                job_metadata.output_file = output_file
+                job_metadata.updated_at = time.time()
+                job_metadata.progress = 1.0
+    
+                processing_time = time.time() - start_time
+    
+                logger.info("=" * 70)
+                logger.info(f"✅ COVER GENERATION COMPLETED - Job ID: {job_id}")
+                logger.info(f"⏱️ Processing Time: {processing_time:.1f}s")
+                logger.info("=" * 70)
+    
+                return CoverGenerationResponse(
+                    job_id=job_id,
+                    status="completed",
+                    output_url=f"/api/download/{job_id}",
+                    processing_details={"steps": [step.dict() for step in processing_steps]},
+                    applied_raga=step1_result.details.get("selected_raga"),
+                    instruments_used=step1_result.details.get("instruments", []),
+                    processing_time_seconds=processing_time,
+                )
+    
+            except Exception as e:
+                logger.error(f"❌ Cover generation failed: {e}", exc_info=True)
+                job_metadata.status = "failed"
+                job_metadata.error = str(e)
+                job_metadata.updated_at = time.time()
+    
+                return CoverGenerationResponse(
+                    job_id=job_id,
+                    status="failed",
+                    error_message=str(e),
+                    instruments_used=[],
+                )
 
     async def _step1_rag_analysis(
         self,
