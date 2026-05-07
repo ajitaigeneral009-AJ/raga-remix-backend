@@ -41,12 +41,11 @@ class CoverGenerator:
         self,
         audio_path: str,
         request: CoverGenerationRequest,
-        ) -> str:
-            """Create a pending job and return job_id immediately."""
-            import uuid as _uuid
-            job_id = str(_uuid.uuid4())
-            start_time = time.time()
-            job_metadata = JobMetadata(
+    ) -> str:
+        """Create a pending job and return job_id immediately."""
+        job_id = str(uuid.uuid4())
+        start_time = time.time()
+        job_metadata = JobMetadata(
             job_id=job_id,
             status="queued",
             created_at=start_time,
@@ -54,11 +53,11 @@ class CoverGenerator:
             input_file=audio_path,
             request=request.dict(),
         )
-            self.jobs[job_id] = job_metadata
-            logger.info(f"Created pending job {job_id}")
-            return job_id
+        self.jobs[job_id] = job_metadata
+        logger.info(f"Created pending job {job_id}")
+        return job_id
 
-        async def generate_cover(
+    async def generate_cover(
         self,
         audio_path: str,
         request: CoverGenerationRequest,
