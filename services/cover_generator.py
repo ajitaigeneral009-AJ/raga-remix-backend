@@ -42,11 +42,11 @@ class CoverGenerator:
         audio_path: str,
         request: CoverGenerationRequest,
         ) -> str:
-        """Create a pending job and return job_id immediately."""
-        import uuid as _uuid
-        job_id = str(_uuid.uuid4())
-        start_time = time.time()
-        job_metadata = JobMetadata(
+            """Create a pending job and return job_id immediately."""
+            import uuid as _uuid
+            job_id = str(_uuid.uuid4())
+            start_time = time.time()
+            job_metadata = JobMetadata(
             job_id=job_id,
             status="queued",
             created_at=start_time,
@@ -54,9 +54,9 @@ class CoverGenerator:
             input_file=audio_path,
             request=request.dict(),
         )
-        self.jobs[job_id] = job_metadata
-        logger.info(f"Created pending job {job_id}")
-        return job_id
+            self.jobs[job_id] = job_metadata
+            logger.info(f"Created pending job {job_id}")
+            return job_id
 
         async def generate_cover(
         self,
@@ -76,7 +76,7 @@ class CoverGenerator:
         6. Mixing & Mastering
         """
         job_id = job_id or str(uuid.uuid4())
-        start_time = time.time()
+            start_time = time.time()
 
         logger.info("=" * 70)
         logger.info(f"🎵 COVER GENERATION STARTED - Job ID: {job_id}")
@@ -88,7 +88,7 @@ if job_id in self.jobs:
             job_metadata.status = "processing"
             job_metadata.updated_at = start_time
         else:
-            job_metadata = JobMetadata(
+                job_metadata = JobMetadata(
                 job_id=job_id,
                 status="processing",
                 created_at=start_time,
@@ -96,7 +96,7 @@ if job_id in self.jobs:
                 input_file=audio_path,
                 request=request.dict(),
             )
-            self.jobs[job_id] = job_metadata
+                self.jobs[job_id] = job_metadata
 
         try:
             processing_steps: list[ProcessingStep] = []
