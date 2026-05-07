@@ -363,13 +363,21 @@ async def generate_cover_with_style(
         )
 
         cover_generator = get_cover_generator()
-        response = await cover_generator.generate_cover(
+        job_id = cover_generator.create_pending_job(
             audio_path=str(upload_path),
             request=request,
         )
-
-        logger.info(f"Cover generation response: Status={response.status}")
-        return response
+        background_tasks.add_task(
+            cover_generator.generate_cover,
+            audio_path=str(upload_path),
+            request=request,
+            job_id=job_id,
+        )
+        logger.info(f"Job {job_id} queued as background task")
+        return CoverGenerationResponse(
+            job_id=job_id,
+            status="queued",
+        )
 
     except ValidationError as e:
         logger.error(f"Validation error: {e}")
