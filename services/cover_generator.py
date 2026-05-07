@@ -63,7 +63,7 @@ class CoverGenerator:
         audio_path: str,
         request: CoverGenerationRequest,
         job_id: Optional[str] = None,
-    ) -> CoverGenerationResponse:
+        ) -> CoverGenerationResponse:
         """
         Generate cover song using 6-step pipeline
 
