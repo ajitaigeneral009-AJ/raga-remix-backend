@@ -37,10 +37,32 @@ class CoverGenerator:
         self.jobs: Dict[str, JobMetadata] = {}
         logger.info("✅ Cover Generator initialized")
 
-    async def generate_cover(
+    def create_pending_job(
         self,
         audio_path: str,
         request: CoverGenerationRequest,
+    ) -> str:
+        """Create a pending job and return job_id immediately."""
+        import uuid as _uuid
+        job_id = str(_uuid.uuid4())
+        start_time = time.time()
+        job_metadata = JobMetadata(
+            job_id=job_id,
+            status="queued",
+            created_at=start_time,
+            updated_at=start_time,
+            input_file=audio_path,
+            request=request.dict(),
+        )
+        self.jobs[job_id] = job_metadata
+        logger.info(f"Created pending job {job_id}")
+        return job_id
+
+        async def generate_cover(
+        self,
+        audio_path: str,
+        request: CoverGenerationRequest,
+        job_id: Optional[str] = None,
     ) -> CoverGenerationResponse:
         """
         Generate cover song using 6-step pipeline
@@ -53,7 +75,7 @@ class CoverGenerator:
         5. Tempo/Energy Adjustment
         6. Mixing & Mastering
         """
-        job_id = str(uuid.uuid4())
+        job_id = job_id or str(uuid.uuid4())
         start_time = time.time()
 
         logger.info("=" * 70)
@@ -61,15 +83,20 @@ class CoverGenerator:
         logger.info(f"🎚️ Instrument mode: {request.instrument_mode}")
         logger.info("=" * 70)
 
-        job_metadata = JobMetadata(
-            job_id=job_id,
-            status="processing",
-            created_at=start_time,
-            updated_at=start_time,
-            input_file=audio_path,
-            request=request.dict(),
-        )
-        self.jobs[job_id] = job_metadata
+if job_id in self.jobs:
+            job_metadata = self.jobs[job_id]
+            job_metadata.status = "processing"
+            job_metadata.updated_at = start_time
+        else:
+            job_metadata = JobMetadata(
+                job_id=job_id,
+                status="processing",
+                created_at=start_time,
+                updated_at=start_time,
+                input_file=audio_path,
+                request=request.dict(),
+            )
+            self.jobs[job_id] = job_metadata
 
         try:
             processing_steps: list[ProcessingStep] = []
